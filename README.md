@@ -58,13 +58,34 @@ If two fields overlap, leave a gap, or the record does not fill the line, the
 constructor throws a `LayoutException` — you find out at boot, not in
 production.
 
-A ready-made generic 550 layout ships in the box:
+Ready-made layouts ship in the box:
 
 ```php
-use Cnab\Layouts\GenericRemittance550;
+use Cnab\Layouts\GenericRemittance550; // didactic flat 550 example
+use Cnab\Layouts\Cnab240Cobranca;      // FEBRABAN CNAB240 cobrança (segment-based)
 
-$layout = GenericRemittance550::layout();
+$layout = Cnab240Cobranca::layout();
 ```
+
+### Segment-based layouts (CNAB240)
+
+CNAB240 nests records (file → lot → segments → trailers) and identifies a
+detail line by a **type** at column 8 plus a **segment** letter at column 14.
+The engine handles this with a composite code: declare the segment window and
+which type codes carry it, and records get codes like `"3P"` / `"3Q"`.
+
+```php
+new Layout(
+    name: 'cnab240-cobranca',
+    lineLength: 240,
+    records: [/* '0', '1', '3P', '3Q', '5', '9' */],
+    typeStart: 8,  typeLength: 1,        // tipo de registro
+    segmentStart: 14, segmentLength: 1,  // segmento
+    segmentParents: ['3'],               // type 3 splits into 3P, 3Q, ...
+);
+```
+
+Manage several layouts with `Cnab\LayoutRegistry` to drive a layout picker.
 
 ## Write a file
 

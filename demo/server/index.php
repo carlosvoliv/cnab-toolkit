@@ -19,6 +19,7 @@ declare(strict_types=1);
 use Cnab\CnabFile;
 use Cnab\Exceptions\CnabException;
 use Cnab\LayoutRegistry;
+use Cnab\Layouts\Cnab240Cobranca;
 use Cnab\Layouts\GenericRemittance550;
 use Cnab\Parser;
 use Cnab\Record;
@@ -35,9 +36,12 @@ header('Content-Type: application/json; charset=utf-8');
 $builders = [];
 $registry = new LayoutRegistry;
 
-// Public, didactic layout (ships with the repo).
+// Public layouts (ship with the repo).
 $registry->register('generic-remittance-550', GenericRemittance550::layout(), 'Genérico (exemplo) · 550');
 $builders['generic-remittance-550'] = buildGenericRemittance(...);
+
+$registry->register('cnab240-cobranca', Cnab240Cobranca::layout(), 'CNAB240 Cobrança · BB (padrão Febraban)');
+$builders['cnab240-cobranca'] = buildCnab240Cobranca(...);
 
 // Private, local layouts (gitignored) — real maps to read actual files.
 foreach (glob(__DIR__.'/layouts.local/*.php') ?: [] as $localFile) {
@@ -186,14 +190,99 @@ function buildGenericRemittance(Layout $layout, array $header, array $titles): C
     return $file;
 }
 
+/** Build a CNAB240 cobrança remittance: file/lot headers, P+Q per title, trailers. */
+function buildCnab240Cobranca(Layout $layout, array $header, array $titles): CnabFile
+{
+    $file = new CnabFile($layout);
+    $bank = str_pad(digits($header['bank_code'] ?? '1'), 3, '0', STR_PAD_LEFT);
+    $today = date('dmY');
+
+    $file->add((new Record($layout->record('0')))
+        ->set('bank_code', $bank)
+        ->set('lot', 0)
+        ->set('record_type', 0)
+        ->set('company_doc_type', 2)
+        ->set('company_document', digits($header['company_code'] ?? '0'))
+        ->set('company_name', upper($header['company_name'] ?? ''))
+        ->set('bank_name', upper($header['bank_name'] ?? ''))
+        ->set('file_code', 1)
+        ->set('file_date', $today)
+        ->set('file_sequence', digits($header['file_sequence'] ?? '1'))
+        ->set('layout_version', 103));
+
+    $file->add((new Record($layout->record('1')))
+        ->set('bank_code', $bank)
+        ->set('lot', 1)
+        ->set('record_type', 1)
+        ->set('operation_type', 'R')
+        ->set('service_type', 1)
+        ->set('lot_layout_version', 60)
+        ->set('company_doc_type', 2)
+        ->set('company_document', digits($header['company_code'] ?? '0'))
+        ->set('company_name', upper($header['company_name'] ?? ''))
+        ->set('recording_date', $today));
+
+    $rn = 0;
+    foreach ($titles as $i => $title) {
+        if (! is_array($title)) {
+            continue;
+        }
+
+        $file->add((new Record($layout->record('3P')))
+            ->set('bank_code', $bank)
+            ->set('lot', 1)
+            ->set('record_type', 3)
+            ->set('record_number', ++$rn)
+            ->set('segment', 'P')
+            ->set('movement_code', 1)
+            ->set('document_number', upper($title['document_number'] ?? sprintf('DOC%04d', $i + 1)))
+            ->set('due_date', toDdMmAaaa($title['due_date'] ?? ''))
+            ->set('nominal_value', sanitizeAmount($title['amount'] ?? '0'))
+            ->set('title_species', 2)
+            ->set('emission_date', $today)
+            ->set('currency_code', 9));
+
+        $file->add((new Record($layout->record('3Q')))
+            ->set('bank_code', $bank)
+            ->set('lot', 1)
+            ->set('record_type', 3)
+            ->set('record_number', ++$rn)
+            ->set('segment', 'Q')
+            ->set('movement_code', 1)
+            ->set('payer_doc_type', (int) ($title['payer_doc_type'] ?? 1))
+            ->set('payer_document', digits($title['payer_document'] ?? '0'))
+            ->set('payer_name', upper($title['payer_name'] ?? ''))
+            ->set('payer_address', upper($title['payer_address'] ?? '')));
+    }
+
+    $lotRecords = $rn + 2; // lot header + details + lot trailer
+
+    $file->add((new Record($layout->record('5')))
+        ->set('bank_code', $bank)
+        ->set('lot', 1)
+        ->set('record_type', 5)
+        ->set('lot_record_count', $lotRecords));
+
+    $file->add((new Record($layout->record('9')))
+        ->set('bank_code', $bank)
+        ->set('lot', 9999)
+        ->set('record_type', 9)
+        ->set('lot_count', 1)
+        ->set('record_count', $lotRecords + 2)); // + file header + file trailer
+
+    return $file;
+}
+
 /** Build the decoded payload (records + summary), optionally with raw content. */
 function payload(Layout $layout, CnabFile $file, ?string $content): array
 {
     $cents = 0;
     foreach ($file->details() as $detail) {
-        $amount = $detail->has('amount') ? $detail->get('amount') : ($detail->tryGet('title_amount') ?? '');
-        if ($amount !== '') {
-            $cents += (int) Decimal::toScaledInt($amount, 2);
+        foreach (['amount', 'title_amount', 'nominal_value'] as $key) {
+            if ($detail->has($key) && $detail->get($key) !== '') {
+                $cents += (int) Decimal::toScaledInt($detail->get($key), 2);
+                break;
+            }
         }
     }
 
@@ -295,6 +384,18 @@ function toDdMmYy(mixed $value): string
 
     if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m)) {
         return $m[3].$m[2].substr($m[1], 2, 2);
+    }
+
+    return digits($value);
+}
+
+/** Accept "YYYY-MM-DD" (HTML date input) and return DDMMAAAA (CNAB240). */
+function toDdMmAaaa(mixed $value): string
+{
+    $value = trim((string) $value);
+
+    if (preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $value, $m)) {
+        return $m[3].$m[2].$m[1];
     }
 
     return digits($value);

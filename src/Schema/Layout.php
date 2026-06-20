@@ -21,6 +21,11 @@ final readonly class Layout
 
     /**
      * @param  list<RecordDefinition>  $records
+     * @param  list<string>  $segmentParents  primary type codes that are further
+     *                                        split by a segment window (e.g. ['3']
+     *                                        in CNAB240, where detail records carry
+     *                                        a segment letter P/Q/R/...). The record
+     *                                        code becomes primary + segment (e.g. "3P").
      */
     public function __construct(
         public string $name,
@@ -31,6 +36,9 @@ final readonly class Layout
         public string $trailerCode = '9',
         public int $typeStart = 1,
         public int $typeLength = 1,
+        public int $segmentStart = 0,
+        public int $segmentLength = 0,
+        public array $segmentParents = [],
     ) {
         if ($lineLength < 1) {
             throw new LayoutException('Layout line length must be >= 1.');
@@ -74,9 +82,19 @@ final readonly class Layout
             ?? throw new LayoutException(sprintf('Layout "%s" has no record with code "%s".', $this->name, $code));
     }
 
-    /** Extract the record-type code from a raw line. */
+    /**
+     * Extract the record-type code from a raw line. For segment-based layouts
+     * (CNAB240), the code of a detail line combines the primary type with its
+     * segment letter, e.g. "3" + "P" => "3P".
+     */
     public function codeOf(string $line): string
     {
-        return substr($line, $this->typeStart - 1, $this->typeLength);
+        $primary = substr($line, $this->typeStart - 1, $this->typeLength);
+
+        if ($this->segmentLength > 0 && in_array($primary, $this->segmentParents, true)) {
+            return $primary.substr($line, $this->segmentStart - 1, $this->segmentLength);
+        }
+
+        return $primary;
     }
 }
