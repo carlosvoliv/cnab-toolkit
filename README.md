@@ -114,6 +114,14 @@ padding and implied-decimal rules). It ships **no** institution-specific field
 sets, client names or proprietary business rules — adapt the layouts to your
 own bank's manual.
 
+## Demo
+
+A full-stack demo under [`demo/`](demo/) **generates a remittance file** from a
+form (header + titles → downloadable fixed-width file), with a decoded view that
+round-trips the output as proof. Frontend is Vue 3 + Vite styled with
+[`facet-ui`](https://github.com/carlosvoliv/facet-ui); the backend is a thin PHP
+endpoint driving the real `Writer`/`Parser`. See [`demo/README.md`](demo/README.md).
+
 ## Tests
 
 ```bash

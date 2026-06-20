@@ -4,3 +4,8 @@ composer.lock
 .phpunit.cache/
 .idea/
 .vscode/
+
+# demo
+demo/node_modules/
+demo/dist/
+demo/package-lock.json
