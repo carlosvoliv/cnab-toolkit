@@ -1,0 +1,40 @@
+{
+    "name": "carlosvoliv/cnab-toolkit",
+    "description": "Schema-driven toolkit to read, write and validate Brazilian CNAB fixed-width bank files.",
+    "type": "library",
+    "license": "MIT",
+    "keywords": ["cnab", "cnab550", "cnab400", "cnab240", "febraban", "fixed-width", "remessa", "retorno", "banking", "fintech"],
+    "authors": [
+        {
+            "name": "Carlos E V Oliveira",
+            "email": "vazkdu@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=8.2"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.0",
+        "laravel/pint": "^1.18"
+    },
+    "autoload": {
+        "psr-4": {
+            "Cnab\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Cnab\\Tests\\": "tests/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "lint": "pint --test",
+        "format": "pint"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
