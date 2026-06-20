@@ -1,9 +1,13 @@
 # cnab-toolkit — demo
 
-A small full-stack demo that **generates a CNAB remittance file** from a form,
-the way a securitization/collections back office does: fill the header and the
-titles, hit *Gerar remessa*, get a valid fixed-width file to download — plus a
-decoded view that round-trips the output as proof.
+A small full-stack demo with two flows:
+
+- **Gerar remessa** — **generates a CNAB remittance file** from a form, the way
+  a securitization/collections back office does: fill the header and the titles,
+  hit *Gerar remessa*, download a valid fixed-width file, plus a decoded view
+  that round-trips the output as proof.
+- **Ler arquivo** — upload a `.REM`/`.TXT` (or paste it) and **parse it back**
+  into decoded records.
 
 - **Frontend:** Vue 3 + Vite, styled with [`facet-ui`](https://github.com/carlosvoliv/facet-ui).
 - **Backend:** a thin PHP endpoint (`server/index.php`) that drives the real
