@@ -137,6 +137,8 @@ own bank's manual.
 
 ## Demo
 
+**Live:** https://carlosvoliv.github.io/cnab-toolkit/
+
 A full-stack demo under [`demo/`](demo/) **generates a remittance file** from a
 form (header + titles → downloadable fixed-width file), with a decoded view that
 round-trips the output as proof. Frontend is Vue 3 + Vite styled with

@@ -43,6 +43,20 @@ npm run dev
 
 Open the URL Vite prints (e.g. http://localhost:5173).
 
+## Deploy (GitHub Pages)
+
+The Pages build is static. Because the demo depends on a sibling `facet-ui`
+checkout (`file:../../facet-ui`), it is **built locally** and the output is
+pushed to the `gh-pages` branch:
+
+```bash
+npm run schema   # refresh src/layouts.generated.json from PHP (if layouts changed)
+npm run build
+cd dist && touch .nojekyll && git init -q && git checkout -b gh-pages \
+  && git add -A && git commit -qm deploy \
+  && git push -f git@github.com:carlosvoliv/cnab-toolkit.git gh-pages && rm -rf .git
+```
+
 ## Layouts
 
 The layout dropdown is fed by `GET /api/layouts`, which merges two sources:
