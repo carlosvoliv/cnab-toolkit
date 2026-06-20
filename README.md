@@ -90,8 +90,8 @@ use Cnab\Parser;
 $file = (new Parser())->parse($content, $layout);
 
 $file->header()->get('company_name');     // "ACME SECURITIES"
-$file->details()[0]->get('amount');        // "2470.56"
-$file->trailer()->get('record_sequence');  // "3"
+$file->details()[0]->get('amount');        // "2470.56" (money normalized)
+$file->trailer()->get('record_sequence');  // "000003" (plain numeric kept verbatim)
 ```
 
 The parser accepts both CRLF/LF-delimited files and a single uninterrupted

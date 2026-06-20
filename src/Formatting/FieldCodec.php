@@ -35,11 +35,13 @@ final class FieldCodec
     public function decode(Field $field, string $raw): string
     {
         if ($field->type === FieldType::Numeric) {
-            $digits = $raw === '' ? '0' : $raw;
-
+            // Monetary fields are normalized to a decimal string; plain numeric
+            // fields keep their exact digits so leading zeros in dates,
+            // sequences and codes (e.g. "010826", "000001") survive the round
+            // trip. Consumers can cast to int when they want a number.
             return $field->decimals > 0
-                ? Decimal::fromScaledInt($digits, $field->decimals)
-                : (string) Decimal::fromScaledInt($digits, 0);
+                ? Decimal::fromScaledInt($raw === '' ? '0' : $raw, $field->decimals)
+                : $raw;
         }
 
         return rtrim($raw, ' ');

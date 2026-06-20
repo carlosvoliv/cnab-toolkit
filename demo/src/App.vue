@@ -32,7 +32,15 @@ const DOC_TYPES = [
   { value: '1', label: 'CPF' },
 ]
 
-// ── Form state ──────────────────────────────────────────────────────────────
+// ── Top-level flow: build a file or read one back ───────────────────────────
+const flow = ref('generate') // generate | read
+function setFlow(value) {
+  flow.value = value
+  result.value = null
+  error.value = ''
+}
+
+// ── Generate form state ─────────────────────────────────────────────────────
 function makeTitle(seed = {}) {
   return {
     payer_name: '',
@@ -73,19 +81,47 @@ const titles = ref([
   }),
 ])
 
+function addTitle() {
+  titles.value.push(makeTitle())
+}
+function removeTitle(i) {
+  titles.value.splice(i, 1)
+}
+
+// ── Read state ──────────────────────────────────────────────────────────────
+const readMode = ref('file') // file | text
+const readText = ref('')
+const readFile = ref(null)
+
+function pickFile(e) {
+  const f = (e.dataTransfer || e.target).files?.[0]
+  if (!f) return
+  readFile.value = f
+  const reader = new FileReader()
+  reader.onload = () => {
+    readText.value = String(reader.result || '')
+  }
+  reader.readAsText(f)
+}
+
+// ── Shared result state ─────────────────────────────────────────────────────
 const loading = ref(false)
 const error = ref('')
 const result = ref(null)
-const view = ref('file') // file | decoded
+const view = ref('file') // file | decoded (only when a generated file exists)
 
 const canGenerate = computed(() => titles.value.length > 0)
+const canParse = computed(() => readText.value.trim().length > 0)
+const hasFile = computed(() => !!result.value?.content)
 
 const steps = computed(() => {
   const done = !!result.value
+  const first = flow.value === 'generate' ? 'Dados' : 'Lido'
+  const last = flow.value === 'generate' ? 'Gerado' : 'Decodificado'
   return [
-    { label: 'Dados', state: 'done' },
+    { label: first, state: 'done' },
     { label: 'Validado', state: done ? 'done' : 'idle' },
-    { label: 'Gerado', state: done ? 'done' : 'idle' },
+    { label: last, state: done ? 'done' : 'idle' },
   ]
 })
 
@@ -102,43 +138,42 @@ function roleLabel(role) {
   return role === 'header' ? 'Header' : role === 'trailer' ? 'Trailer' : 'Detalhe'
 }
 
-function addTitle() {
-  titles.value.push(makeTitle())
-}
-function removeTitle(i) {
-  titles.value.splice(i, 1)
-}
-
 const fieldColumns = [
   { key: 'label', label: 'Campo' },
   { key: 'span', label: 'Posição', align: 'center' },
   { key: 'value', label: 'Valor' },
 ]
 
-async function generate() {
-  if (!canGenerate.value) return
+async function post(url, payload) {
   loading.value = true
   error.value = ''
   result.value = null
   try {
-    const res = await fetch('/api/generate', {
+    const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ header: header.value, titles: titles.value }),
+      body: JSON.stringify(payload),
     })
     const body = await res.json().catch(() => ({}))
     if (!res.ok) throw new Error(body.error || `Falha na requisição (${res.status})`)
     result.value = body
     view.value = 'file'
   } catch (e) {
-    error.value = e.message || 'Falha ao gerar a remessa.'
+    error.value = e.message || 'Operação falhou.'
   } finally {
     loading.value = false
   }
 }
 
+function generate() {
+  if (canGenerate.value) post('/api/generate', { header: header.value, titles: titles.value })
+}
+function parse() {
+  if (canParse.value) post('/api/parse', { content: readText.value })
+}
+
 function downloadFile() {
-  if (!result.value) return
+  if (!hasFile.value) return
   const blob = new Blob([result.value.content], { type: 'text/plain' })
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -150,8 +185,7 @@ function downloadFile() {
 }
 
 async function copyFile() {
-  if (!result.value) return
-  await navigator.clipboard?.writeText(result.value.content)
+  if (hasFile.value) await navigator.clipboard?.writeText(result.value.content)
 }
 </script>
 
@@ -173,8 +207,8 @@ async function copyFile() {
     <div class="main">
       <header class="topbar">
         <div class="topbar__title">
-          <h1 class="title">Gerador de Remessa CNAB</h1>
-          <p class="subtitle">Monta o arquivo de largura fixa a partir dos títulos · engine PHP schema-driven</p>
+          <h1 class="title">CNAB Toolkit</h1>
+          <p class="subtitle">Gera e lê arquivos de remessa de largura fixa · engine PHP schema-driven</p>
         </div>
         <div class="topbar__tools">
           <FacetChip variant="blue" size="sm">API conectada</FacetChip>
@@ -185,54 +219,116 @@ async function copyFile() {
       </header>
 
       <div class="workspace">
-        <!-- Form -->
+        <!-- Input -->
         <section class="panel">
           <header class="panel__head">
             <FacetIcon name="edit" :size="15" />
-            <span>Dados da remessa</span>
+            <span>{{ flow === 'generate' ? 'Montar remessa' : 'Ler arquivo' }}</span>
           </header>
           <div class="panel__body">
-            <div class="grid-2">
-              <FacetInput v-model="header.company_name" label="Cedente / Empresa" />
-              <FacetInput v-model="header.company_code" label="Código do cedente" />
-              <FacetInput v-model="header.bank_code" label="Banco (nº)" />
-              <FacetInput v-model="header.bank_name" label="Banco (nome)" />
-              <FacetInput v-model="header.service_code" label="Serviço" />
-              <FacetInput v-model="header.file_sequence" label="Sequência do arquivo" />
-            </div>
+            <FacetTabs
+              :model-value="flow"
+              :tabs="[
+                { value: 'generate', label: 'Gerar remessa' },
+                { value: 'read', label: 'Ler arquivo' },
+              ]"
+              @update:model-value="setFlow"
+            />
 
-            <div class="titles">
-              <div class="titles__head">
-                <span>Títulos ({{ titles.length }})</span>
-                <FacetButton variant="ghost" size="sm" @click="addTitle">+ Adicionar título</FacetButton>
+            <!-- GENERATE -->
+            <template v-if="flow === 'generate'">
+              <div class="grid-2">
+                <FacetInput v-model="header.company_name" label="Cedente / Empresa" />
+                <FacetInput v-model="header.company_code" label="Código do cedente" />
+                <FacetInput v-model="header.bank_code" label="Banco (nº)" />
+                <FacetInput v-model="header.bank_name" label="Banco (nome)" />
+                <FacetInput v-model="header.service_code" label="Serviço" />
+                <FacetInput v-model="header.file_sequence" label="Sequência do arquivo" />
               </div>
 
-              <div v-for="(t, i) in titles" :key="i" class="title-card">
-                <div class="title-card__top">
-                  <FacetChip variant="grey" size="sm">#{{ i + 1 }}</FacetChip>
-                  <FacetIconButton
-                    name="close"
-                    label="Remover título"
-                    :disabled="titles.length === 1"
-                    @click="removeTitle(i)"
-                  />
+              <div class="titles">
+                <div class="titles__head">
+                  <span>Títulos ({{ titles.length }})</span>
+                  <FacetButton variant="ghost" size="sm" @click="addTitle">+ Adicionar título</FacetButton>
                 </div>
-                <div class="grid-2">
-                  <FacetInput v-model="t.payer_name" label="Sacado (pagador)" />
-                  <FacetInput v-model="t.document_number" label="Nº do documento" />
-                  <FacetSelect v-model="t.payer_doc_type" :options="DOC_TYPES" label="Tipo" />
-                  <FacetInput v-model="t.payer_document" label="CPF / CNPJ" />
-                  <FacetInput v-model="t.due_date" type="date" label="Vencimento" />
-                  <FacetInput v-model="t.amount" type="number" step="0.01" label="Valor (R$)" />
+
+                <div v-for="(t, i) in titles" :key="i" class="title-card">
+                  <div class="title-card__top">
+                    <FacetChip variant="grey" size="sm">#{{ i + 1 }}</FacetChip>
+                    <FacetIconButton
+                      name="close"
+                      label="Remover título"
+                      :disabled="titles.length === 1"
+                      @click="removeTitle(i)"
+                    />
+                  </div>
+                  <div class="grid-2">
+                    <FacetInput v-model="t.payer_name" label="Sacado (pagador)" />
+                    <FacetInput v-model="t.document_number" label="Nº do documento" />
+                    <FacetSelect v-model="t.payer_doc_type" :options="DOC_TYPES" label="Tipo" />
+                    <FacetInput v-model="t.payer_document" label="CPF / CNPJ" />
+                    <FacetInput v-model="t.due_date" type="date" label="Vencimento" />
+                    <FacetInput v-model="t.amount" type="number" step="0.01" label="Valor (R$)" />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <div class="actions">
-              <FacetButton :loading="loading" :disabled="!canGenerate" @click="generate">
-                Gerar remessa
-              </FacetButton>
-            </div>
+              <div class="actions">
+                <FacetButton :loading="loading" :disabled="!canGenerate" @click="generate">
+                  Gerar remessa
+                </FacetButton>
+              </div>
+            </template>
+
+            <!-- READ -->
+            <template v-else>
+              <FacetTabs
+                :model-value="readMode"
+                :tabs="[
+                  { value: 'file', label: 'Enviar arquivo' },
+                  { value: 'text', label: 'Colar conteúdo' },
+                ]"
+                @update:model-value="readMode = $event"
+              />
+
+              <label
+                v-if="readMode === 'file'"
+                class="dropzone"
+                :class="{ 'dropzone--filled': readFile }"
+                @dragover.prevent
+                @drop.prevent="pickFile"
+              >
+                <input type="file" accept=".rem,.txt,text/plain" hidden @change="pickFile" />
+                <FacetIcon name="download" :size="26" />
+                <template v-if="readFile">
+                  <strong>{{ readFile.name }}</strong>
+                  <span class="dropzone__hint">clique para trocar</span>
+                </template>
+                <template v-else>
+                  <strong>Arraste um .REM/.TXT ou clique para enviar</strong>
+                  <span class="dropzone__hint">arquivo de remessa CNAB</span>
+                </template>
+              </label>
+
+              <textarea
+                v-else
+                v-model="readText"
+                class="doc-input"
+                aria-label="Conteúdo do arquivo CNAB"
+                spellcheck="false"
+                rows="14"
+                placeholder="Cole aqui as linhas de 550 colunas do arquivo de remessa"
+              />
+
+              <FacetAlert variant="info" title="Layout">
+                A leitura usa o layout de exemplo <strong>generic-remittance-550</strong>. Um arquivo de um banco real
+                segue outro mapa de posições — declare o layout dele para decodificar corretamente.
+              </FacetAlert>
+
+              <div class="actions">
+                <FacetButton :loading="loading" :disabled="!canParse" @click="parse">Analisar</FacetButton>
+              </div>
+            </template>
           </div>
         </section>
 
@@ -242,7 +338,7 @@ async function copyFile() {
 
           <div v-else-if="!result" class="empty">
             <FacetIcon name="layers" :size="28" />
-            <p>Preencha os títulos e gere o arquivo de remessa.</p>
+            <p>{{ flow === 'generate' ? 'Preencha os títulos e gere o arquivo de remessa.' : 'Envie um arquivo para decodificar os registros.' }}</p>
           </div>
 
           <template v-else>
@@ -252,7 +348,7 @@ async function copyFile() {
                   <span class="summary__eyebrow">{{ result.layout }}</span>
                   <span class="summary__num">{{ totalBRL }}</span>
                   <span class="summary__uuid">
-                    {{ result.summary.records }} registros · {{ result.byteLength }} bytes · linha {{ result.lineLength }}
+                    {{ result.summary.records }} registros<template v-if="hasFile"> · {{ result.byteLength }} bytes</template> · linha {{ result.lineLength }}
                   </span>
                 </div>
                 <div class="summary__chips">
@@ -261,8 +357,8 @@ async function copyFile() {
                     <strong class="info-chip__value">{{ result.summary.details }}</strong>
                   </div>
                   <div class="info-chip">
-                    <span class="info-chip__label">Linhas</span>
-                    <strong class="info-chip__value">{{ result.lineCount }}</strong>
+                    <span class="info-chip__label">Registros</span>
+                    <strong class="info-chip__value">{{ result.summary.records }}</strong>
                   </div>
                 </div>
                 <div class="summary__steps"><FacetStepper :steps="steps" /></div>
@@ -271,14 +367,15 @@ async function copyFile() {
 
             <section class="panel">
               <header class="panel__head panel__head--rec">
-                <span class="rec-name">Resultado</span>
-                <span class="rec-meta">
+                <span class="rec-name">{{ hasFile ? 'Resultado' : 'Registros decodificados' }}</span>
+                <span v-if="hasFile" class="rec-meta">
                   <FacetButton variant="ghost" size="sm" @click="copyFile">Copiar</FacetButton>
                   <FacetButton size="sm" @click="downloadFile">Baixar .REM</FacetButton>
                 </span>
               </header>
               <div class="panel__body">
                 <FacetTabs
+                  v-if="hasFile"
                   :model-value="view"
                   :tabs="[
                     { value: 'file', label: 'Arquivo gerado' },
@@ -287,7 +384,7 @@ async function copyFile() {
                   @update:model-value="view = $event"
                 />
 
-                <pre v-if="view === 'file'" class="file-out">{{ result.content }}</pre>
+                <pre v-if="hasFile && view === 'file'" class="file-out">{{ result.content }}</pre>
 
                 <div v-else class="decoded">
                   <div v-for="(rec, i) in result.records" :key="i" class="rec-block">

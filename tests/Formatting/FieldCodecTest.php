@@ -46,6 +46,13 @@ final class FieldCodecTest extends TestCase
         $this->assertSame('2470.56', $this->codec->decode($field, '0000000247056'));
     }
 
+    public function test_decodes_plain_numeric_preserving_leading_zeros(): void
+    {
+        $field = Field::numeric('due_date', 1, 6);
+
+        $this->assertSame('010826', $this->codec->decode($field, '010826'));
+    }
+
     public function test_decodes_alpha_trimming_trailing_spaces(): void
     {
         $field = Field::alpha('name', 1, 10);

@@ -62,7 +62,8 @@ final class RoundTripTest extends TestCase
         $this->assertSame('2470.56', $detail->get('amount'));
         $this->assertSame('12345678000199', $detail->get('payer_document'));
         $this->assertSame('CTRL-0001', $detail->get('control_number'));
-        $this->assertSame('3', $parsed->trailer()->get('record_sequence'));
+        $this->assertSame('300626', $detail->get('due_date')); // leading-zero date preserved
+        $this->assertSame('000003', $parsed->trailer()->get('record_sequence'));
     }
 
     public function test_parses_stream_without_line_breaks(): void

@@ -34,6 +34,7 @@ $layout = GenericRemittance550::layout();
 try {
     match (true) {
         $method === 'POST' && $path === '/api/generate' => json(generate($layout, jsonBody())),
+        $method === 'POST' && $path === '/api/parse' => json(parseContent($layout, (string) (jsonBody()['content'] ?? ''))),
         default => fail(404, 'Not found.'),
     };
 } catch (CnabException $e) {
@@ -111,6 +112,39 @@ function generate($layout, array $input): array
         'content' => $content,
         'byteLength' => strlen($content),
         'lineCount' => $parsed->count(),
+        'records' => array_map(serializeRecord(...), $parsed->records()),
+        'summary' => [
+            'records' => $parsed->count(),
+            'details' => count($parsed->details()),
+            'totalAmount' => Decimal::fromScaledInt((string) $cents, 2),
+        ],
+    ];
+}
+
+/**
+ * Parse raw CNAB content into the same decoded shape the generator returns, so
+ * the UI can reuse the decoded view for uploaded/pasted files.
+ */
+function parseContent($layout, string $content): array
+{
+    $content = rtrim($content);
+
+    if (trim($content) === '') {
+        throw new CnabException('Cole o conteúdo de um arquivo CNAB ou envie um .REM.');
+    }
+
+    $parsed = (new Parser)->parse($content, $layout);
+
+    $cents = 0;
+    foreach ($parsed->details() as $detail) {
+        if ($detail->has('amount')) {
+            $cents += (int) Decimal::toScaledInt($detail->get('amount'), 2);
+        }
+    }
+
+    return [
+        'layout' => $layout->name,
+        'lineLength' => $layout->lineLength,
         'records' => array_map(serializeRecord(...), $parsed->records()),
         'summary' => [
             'records' => $parsed->count(),
