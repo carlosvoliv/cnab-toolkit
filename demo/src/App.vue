@@ -13,6 +13,7 @@ import {
   FacetIcon,
 } from 'facet-ui'
 import themeManifest from 'facet-ui/themes.json'
+import { getLayouts, generate as apiGenerate, parse as apiParse, hasApi } from './cnab/api'
 
 // ── Theme picker — list comes straight from facet-ui's exported manifest ───
 const THEMES = [
@@ -42,11 +43,12 @@ const genOptions = computed(() =>
 )
 const readOptions = computed(() => layouts.value.map((l) => ({ value: l.id, label: l.label })))
 
+const backend = ref('')
+
 onMounted(async () => {
   try {
-    const res = await fetch('/api/layouts')
-    const body = await res.json()
-    layouts.value = body.layouts || []
+    layouts.value = await getLayouts()
+    backend.value = (await hasApi()) ? 'API PHP' : 'engine no browser'
     genLayoutId.value = layouts.value.find((l) => l.canGenerate)?.id || ''
     readLayoutId.value = layouts.value[0]?.id || ''
   } catch {
@@ -173,19 +175,12 @@ const fieldColumns = [
   { key: 'value', label: 'Valor' },
 ]
 
-async function post(url, payload) {
+async function run(fn) {
   loading.value = true
   error.value = ''
   result.value = null
   try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    const body = await res.json().catch(() => ({}))
-    if (!res.ok) throw new Error(body.error || `Falha na requisição (${res.status})`)
-    result.value = body
+    result.value = await fn()
     view.value = 'file'
   } catch (e) {
     error.value = e.message || 'Operação falhou.'
@@ -195,14 +190,12 @@ async function post(url, payload) {
 }
 
 function generate() {
-  if (canGenerate.value) post('/api/generate', { layout: genLayoutId.value, header: header.value, titles: titles.value })
+  if (canGenerate.value) run(() => apiGenerate(genLayoutId.value, header.value, titles.value))
 }
 function parse() {
   if (!canParse.value) return
-  const payload = { layout: readLayoutId.value }
-  if (readMode.value === 'file') payload.contentBase64 = readBytesB64.value
-  else payload.content = readText.value
-  post('/api/parse', payload)
+  const input = readMode.value === 'file' ? { contentBase64: readBytesB64.value } : { content: readText.value }
+  run(() => apiParse(readLayoutId.value, input))
 }
 
 function downloadFile() {
@@ -244,7 +237,7 @@ async function copyFile() {
           <p class="subtitle">Gera e lê arquivos de remessa de largura fixa · engine PHP schema-driven</p>
         </div>
         <div class="topbar__tools">
-          <FacetChip variant="blue" size="sm">API conectada</FacetChip>
+          <FacetChip v-if="backend" variant="blue" size="sm">{{ backend }}</FacetChip>
           <div class="theme-pick">
             <FacetSelect :model-value="theme" :options="THEMES" @update:model-value="applyTheme" />
           </div>

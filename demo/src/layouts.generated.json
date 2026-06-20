@@ -1,0 +1,1532 @@
+{
+    "generic-remittance-550": {
+        "id": "generic-remittance-550",
+        "label": "Genérico (exemplo) · 550",
+        "lineLength": 550,
+        "family": "CNAB550",
+        "canGenerate": true,
+        "headerCode": "0",
+        "detailCode": "1",
+        "trailerCode": "9",
+        "typeStart": 1,
+        "typeLength": 1,
+        "segmentStart": 0,
+        "segmentLength": 0,
+        "segmentParents": [],
+        "records": {
+            "0": {
+                "code": "0",
+                "name": "Header",
+                "role": "header",
+                "fields": [
+                    {
+                        "name": "record_type",
+                        "start": 1,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Always 0",
+                        "filler": false
+                    },
+                    {
+                        "name": "remittance_literal",
+                        "start": 2,
+                        "length": 8,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Literal \"REMESSA\"",
+                        "filler": false
+                    },
+                    {
+                        "name": "service_code",
+                        "start": 10,
+                        "length": 2,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Service identifier",
+                        "filler": false
+                    },
+                    {
+                        "name": "company_code",
+                        "start": 12,
+                        "length": 20,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Assignor/company code",
+                        "filler": false
+                    },
+                    {
+                        "name": "company_name",
+                        "start": 32,
+                        "length": 30,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Company legal name",
+                        "filler": false
+                    },
+                    {
+                        "name": "bank_code",
+                        "start": 62,
+                        "length": 3,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Bank clearing number",
+                        "filler": false
+                    },
+                    {
+                        "name": "bank_name",
+                        "start": 65,
+                        "length": 15,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Bank name",
+                        "filler": false
+                    },
+                    {
+                        "name": "file_date",
+                        "start": 80,
+                        "length": 6,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Generation date DDMMYY",
+                        "filler": false
+                    },
+                    {
+                        "name": "file_sequence",
+                        "start": 86,
+                        "length": 7,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "File sequence number",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_93",
+                        "start": 93,
+                        "length": 452,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "record_sequence",
+                        "start": 545,
+                        "length": 6,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Record number in file",
+                        "filler": false
+                    }
+                ]
+            },
+            "1": {
+                "code": "1",
+                "name": "Detail",
+                "role": "detail",
+                "fields": [
+                    {
+                        "name": "record_type",
+                        "start": 1,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Always 1",
+                        "filler": false
+                    },
+                    {
+                        "name": "control_number",
+                        "start": 2,
+                        "length": 25,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Participant control number",
+                        "filler": false
+                    },
+                    {
+                        "name": "document_number",
+                        "start": 27,
+                        "length": 10,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Document/title number",
+                        "filler": false
+                    },
+                    {
+                        "name": "due_date",
+                        "start": 37,
+                        "length": 6,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Due date DDMMYY",
+                        "filler": false
+                    },
+                    {
+                        "name": "amount",
+                        "start": 43,
+                        "length": 13,
+                        "type": "numeric",
+                        "decimals": 2,
+                        "description": "Title face value",
+                        "filler": false
+                    },
+                    {
+                        "name": "payer_doc_type",
+                        "start": 56,
+                        "length": 2,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "01 CPF / 02 CNPJ",
+                        "filler": false
+                    },
+                    {
+                        "name": "payer_document",
+                        "start": 58,
+                        "length": 14,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Payer CPF/CNPJ",
+                        "filler": false
+                    },
+                    {
+                        "name": "payer_name",
+                        "start": 72,
+                        "length": 40,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Payer name",
+                        "filler": false
+                    },
+                    {
+                        "name": "payer_address",
+                        "start": 112,
+                        "length": 40,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Payer address",
+                        "filler": false
+                    },
+                    {
+                        "name": "occurrence_code",
+                        "start": 152,
+                        "length": 2,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Instruction/occurrence",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_154",
+                        "start": 154,
+                        "length": 391,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "record_sequence",
+                        "start": 545,
+                        "length": 6,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Record number in file",
+                        "filler": false
+                    }
+                ]
+            },
+            "9": {
+                "code": "9",
+                "name": "Trailer",
+                "role": "trailer",
+                "fields": [
+                    {
+                        "name": "record_type",
+                        "start": 1,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Always 9",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_2",
+                        "start": 2,
+                        "length": 543,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "record_sequence",
+                        "start": 545,
+                        "length": 6,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Last record number",
+                        "filler": false
+                    }
+                ]
+            }
+        }
+    },
+    "cnab240-cobranca": {
+        "id": "cnab240-cobranca",
+        "label": "CNAB240 Cobrança · BB (padrão Febraban)",
+        "lineLength": 240,
+        "family": "CNAB240",
+        "canGenerate": true,
+        "headerCode": "0",
+        "detailCode": "3P",
+        "trailerCode": "9",
+        "typeStart": 8,
+        "typeLength": 1,
+        "segmentStart": 14,
+        "segmentLength": 1,
+        "segmentParents": [
+            "3"
+        ],
+        "records": {
+            "0": {
+                "code": "0",
+                "name": "Header de arquivo",
+                "role": "header",
+                "fields": [
+                    {
+                        "name": "bank_code",
+                        "start": 1,
+                        "length": 3,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código do banco",
+                        "filler": false
+                    },
+                    {
+                        "name": "lot",
+                        "start": 4,
+                        "length": 4,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Lote de serviço",
+                        "filler": false
+                    },
+                    {
+                        "name": "record_type",
+                        "start": 8,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Tipo de registro (0)",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_9",
+                        "start": 9,
+                        "length": 9,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "company_doc_type",
+                        "start": 18,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Tipo de inscrição da empresa",
+                        "filler": false
+                    },
+                    {
+                        "name": "company_document",
+                        "start": 19,
+                        "length": 14,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Nº de inscrição da empresa",
+                        "filler": false
+                    },
+                    {
+                        "name": "agreement_number",
+                        "start": 33,
+                        "length": 9,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Número do convênio",
+                        "filler": false
+                    },
+                    {
+                        "name": "assignor_code",
+                        "start": 42,
+                        "length": 4,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Cobrança cedente",
+                        "filler": false
+                    },
+                    {
+                        "name": "wallet_number",
+                        "start": 46,
+                        "length": 2,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Número da carteira",
+                        "filler": false
+                    },
+                    {
+                        "name": "wallet_variation",
+                        "start": 48,
+                        "length": 3,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Variação da carteira",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_51",
+                        "start": 51,
+                        "length": 2,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "agency",
+                        "start": 53,
+                        "length": 5,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Agência mantenedora",
+                        "filler": false
+                    },
+                    {
+                        "name": "agency_dv",
+                        "start": 58,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Dígito verificador da agência",
+                        "filler": false
+                    },
+                    {
+                        "name": "account",
+                        "start": 59,
+                        "length": 12,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Número da conta",
+                        "filler": false
+                    },
+                    {
+                        "name": "account_dv",
+                        "start": 71,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Dígito verificador da conta",
+                        "filler": false
+                    },
+                    {
+                        "name": "agency_account_dv",
+                        "start": 72,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "DV agência/conta",
+                        "filler": false
+                    },
+                    {
+                        "name": "company_name",
+                        "start": 73,
+                        "length": 30,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Nome da empresa",
+                        "filler": false
+                    },
+                    {
+                        "name": "bank_name",
+                        "start": 103,
+                        "length": 30,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Nome do banco",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_133",
+                        "start": 133,
+                        "length": 10,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "file_code",
+                        "start": 143,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código remessa/retorno",
+                        "filler": false
+                    },
+                    {
+                        "name": "file_date",
+                        "start": 144,
+                        "length": 8,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Data de geração DDMMAAAA",
+                        "filler": false
+                    },
+                    {
+                        "name": "file_time",
+                        "start": 152,
+                        "length": 6,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Hora de geração HHMMSS",
+                        "filler": false
+                    },
+                    {
+                        "name": "file_sequence",
+                        "start": 158,
+                        "length": 6,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Nº sequencial do arquivo",
+                        "filler": false
+                    },
+                    {
+                        "name": "layout_version",
+                        "start": 164,
+                        "length": 3,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Versão do layout do arquivo",
+                        "filler": false
+                    },
+                    {
+                        "name": "recording_density",
+                        "start": 167,
+                        "length": 5,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Densidade de gravação",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_172",
+                        "start": 172,
+                        "length": 20,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "filler_192",
+                        "start": 192,
+                        "length": 20,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "filler_212",
+                        "start": 212,
+                        "length": 29,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    }
+                ]
+            },
+            "1": {
+                "code": "1",
+                "name": "Header de lote",
+                "role": "detail",
+                "fields": [
+                    {
+                        "name": "bank_code",
+                        "start": 1,
+                        "length": 3,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código do banco",
+                        "filler": false
+                    },
+                    {
+                        "name": "lot",
+                        "start": 4,
+                        "length": 4,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Lote de serviço",
+                        "filler": false
+                    },
+                    {
+                        "name": "record_type",
+                        "start": 8,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Tipo de registro (1)",
+                        "filler": false
+                    },
+                    {
+                        "name": "operation_type",
+                        "start": 9,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Tipo de operação (R)",
+                        "filler": false
+                    },
+                    {
+                        "name": "service_type",
+                        "start": 10,
+                        "length": 2,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Tipo de serviço (01)",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_12",
+                        "start": 12,
+                        "length": 2,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "lot_layout_version",
+                        "start": 14,
+                        "length": 3,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Versão do layout do lote",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_17",
+                        "start": 17,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "company_doc_type",
+                        "start": 18,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Tipo de inscrição da empresa",
+                        "filler": false
+                    },
+                    {
+                        "name": "company_document",
+                        "start": 19,
+                        "length": 15,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Nº de inscrição da empresa",
+                        "filler": false
+                    },
+                    {
+                        "name": "agreement_number",
+                        "start": 34,
+                        "length": 9,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Número do convênio",
+                        "filler": false
+                    },
+                    {
+                        "name": "assignor_code",
+                        "start": 43,
+                        "length": 4,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Cobrança cedente",
+                        "filler": false
+                    },
+                    {
+                        "name": "wallet_number",
+                        "start": 47,
+                        "length": 2,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Número da carteira",
+                        "filler": false
+                    },
+                    {
+                        "name": "wallet_variation",
+                        "start": 49,
+                        "length": 3,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Variação da carteira",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_52",
+                        "start": 52,
+                        "length": 2,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "agency",
+                        "start": 54,
+                        "length": 5,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Agência mantenedora",
+                        "filler": false
+                    },
+                    {
+                        "name": "agency_dv",
+                        "start": 59,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Dígito verificador da agência",
+                        "filler": false
+                    },
+                    {
+                        "name": "account",
+                        "start": 60,
+                        "length": 12,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Número da conta",
+                        "filler": false
+                    },
+                    {
+                        "name": "account_dv",
+                        "start": 72,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Dígito verificador da conta",
+                        "filler": false
+                    },
+                    {
+                        "name": "agency_account_dv",
+                        "start": 73,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "DV agência/conta",
+                        "filler": false
+                    },
+                    {
+                        "name": "company_name",
+                        "start": 74,
+                        "length": 30,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Nome da empresa",
+                        "filler": false
+                    },
+                    {
+                        "name": "message_1",
+                        "start": 104,
+                        "length": 40,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Mensagem 1",
+                        "filler": false
+                    },
+                    {
+                        "name": "message_2",
+                        "start": 144,
+                        "length": 40,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Mensagem 2",
+                        "filler": false
+                    },
+                    {
+                        "name": "remittance_number",
+                        "start": 184,
+                        "length": 8,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Nº remessa/retorno",
+                        "filler": false
+                    },
+                    {
+                        "name": "recording_date",
+                        "start": 192,
+                        "length": 8,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Data de gravação DDMMAAAA",
+                        "filler": false
+                    },
+                    {
+                        "name": "credit_date",
+                        "start": 200,
+                        "length": 8,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Data do crédito DDMMAAAA",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_208",
+                        "start": 208,
+                        "length": 33,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    }
+                ]
+            },
+            "3P": {
+                "code": "3P",
+                "name": "Detalhe · Segmento P",
+                "role": "detail",
+                "fields": [
+                    {
+                        "name": "bank_code",
+                        "start": 1,
+                        "length": 3,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código do banco",
+                        "filler": false
+                    },
+                    {
+                        "name": "lot",
+                        "start": 4,
+                        "length": 4,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Lote de serviço",
+                        "filler": false
+                    },
+                    {
+                        "name": "record_type",
+                        "start": 8,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Tipo de registro (3)",
+                        "filler": false
+                    },
+                    {
+                        "name": "record_number",
+                        "start": 9,
+                        "length": 5,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Nº do registro no lote",
+                        "filler": false
+                    },
+                    {
+                        "name": "segment",
+                        "start": 14,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Código do segmento (P)",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_15",
+                        "start": 15,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "movement_code",
+                        "start": 16,
+                        "length": 2,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código de movimento remessa",
+                        "filler": false
+                    },
+                    {
+                        "name": "agency",
+                        "start": 18,
+                        "length": 5,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Agência",
+                        "filler": false
+                    },
+                    {
+                        "name": "agency_dv",
+                        "start": 23,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "DV da agência",
+                        "filler": false
+                    },
+                    {
+                        "name": "account",
+                        "start": 24,
+                        "length": 12,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Número da conta",
+                        "filler": false
+                    },
+                    {
+                        "name": "account_dv",
+                        "start": 36,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "DV da conta",
+                        "filler": false
+                    },
+                    {
+                        "name": "agency_account_dv",
+                        "start": 37,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "DV agência/conta",
+                        "filler": false
+                    },
+                    {
+                        "name": "our_number",
+                        "start": 38,
+                        "length": 20,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Nosso número",
+                        "filler": false
+                    },
+                    {
+                        "name": "wallet_code",
+                        "start": 58,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código da carteira",
+                        "filler": false
+                    },
+                    {
+                        "name": "registration_form",
+                        "start": 59,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Forma de cadastramento",
+                        "filler": false
+                    },
+                    {
+                        "name": "document_type",
+                        "start": 60,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Tipo de documento",
+                        "filler": false
+                    },
+                    {
+                        "name": "bloqueto_emission",
+                        "start": 61,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Emissão do bloqueto",
+                        "filler": false
+                    },
+                    {
+                        "name": "bloqueto_distribution",
+                        "start": 62,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Distribuição do bloqueto",
+                        "filler": false
+                    },
+                    {
+                        "name": "document_number",
+                        "start": 63,
+                        "length": 15,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Nº do documento",
+                        "filler": false
+                    },
+                    {
+                        "name": "due_date",
+                        "start": 78,
+                        "length": 8,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Data de vencimento DDMMAAAA",
+                        "filler": false
+                    },
+                    {
+                        "name": "nominal_value",
+                        "start": 86,
+                        "length": 15,
+                        "type": "numeric",
+                        "decimals": 2,
+                        "description": "Valor nominal do título",
+                        "filler": false
+                    },
+                    {
+                        "name": "collection_agency",
+                        "start": 101,
+                        "length": 5,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Agência cobradora",
+                        "filler": false
+                    },
+                    {
+                        "name": "collection_agency_dv",
+                        "start": 106,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "DV da agência cobradora",
+                        "filler": false
+                    },
+                    {
+                        "name": "title_species",
+                        "start": 107,
+                        "length": 2,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Espécie do título",
+                        "filler": false
+                    },
+                    {
+                        "name": "acceptance",
+                        "start": 109,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Aceite",
+                        "filler": false
+                    },
+                    {
+                        "name": "emission_date",
+                        "start": 110,
+                        "length": 8,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Data de emissão DDMMAAAA",
+                        "filler": false
+                    },
+                    {
+                        "name": "interest_code",
+                        "start": 118,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código de juros de mora",
+                        "filler": false
+                    },
+                    {
+                        "name": "interest_date",
+                        "start": 119,
+                        "length": 8,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Data de juros de mora",
+                        "filler": false
+                    },
+                    {
+                        "name": "interest_per_day",
+                        "start": 127,
+                        "length": 15,
+                        "type": "numeric",
+                        "decimals": 2,
+                        "description": "Juros de mora por dia",
+                        "filler": false
+                    },
+                    {
+                        "name": "discount_code",
+                        "start": 142,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código de desconto",
+                        "filler": false
+                    },
+                    {
+                        "name": "discount_date",
+                        "start": 143,
+                        "length": 8,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Data de desconto",
+                        "filler": false
+                    },
+                    {
+                        "name": "discount_value",
+                        "start": 151,
+                        "length": 15,
+                        "type": "numeric",
+                        "decimals": 2,
+                        "description": "Valor do desconto",
+                        "filler": false
+                    },
+                    {
+                        "name": "iof_value",
+                        "start": 166,
+                        "length": 15,
+                        "type": "numeric",
+                        "decimals": 2,
+                        "description": "Valor do IOF",
+                        "filler": false
+                    },
+                    {
+                        "name": "rebate_value",
+                        "start": 181,
+                        "length": 15,
+                        "type": "numeric",
+                        "decimals": 2,
+                        "description": "Valor do abatimento",
+                        "filler": false
+                    },
+                    {
+                        "name": "company_title_id",
+                        "start": 196,
+                        "length": 25,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Identificação do título na empresa",
+                        "filler": false
+                    },
+                    {
+                        "name": "protest_code",
+                        "start": 221,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código de protesto",
+                        "filler": false
+                    },
+                    {
+                        "name": "protest_days",
+                        "start": 222,
+                        "length": 2,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Prazo para protesto",
+                        "filler": false
+                    },
+                    {
+                        "name": "writeoff_code",
+                        "start": 224,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código de baixa/devolução",
+                        "filler": false
+                    },
+                    {
+                        "name": "writeoff_days",
+                        "start": 225,
+                        "length": 3,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Prazo para baixa/devolução",
+                        "filler": false
+                    },
+                    {
+                        "name": "currency_code",
+                        "start": 228,
+                        "length": 2,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código da moeda",
+                        "filler": false
+                    },
+                    {
+                        "name": "credit_contract_number",
+                        "start": 230,
+                        "length": 10,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Nº do contrato",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_240",
+                        "start": 240,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    }
+                ]
+            },
+            "3Q": {
+                "code": "3Q",
+                "name": "Detalhe · Segmento Q",
+                "role": "detail",
+                "fields": [
+                    {
+                        "name": "bank_code",
+                        "start": 1,
+                        "length": 3,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código do banco",
+                        "filler": false
+                    },
+                    {
+                        "name": "lot",
+                        "start": 4,
+                        "length": 4,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Lote de serviço",
+                        "filler": false
+                    },
+                    {
+                        "name": "record_type",
+                        "start": 8,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Tipo de registro (3)",
+                        "filler": false
+                    },
+                    {
+                        "name": "record_number",
+                        "start": 9,
+                        "length": 5,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Nº do registro no lote",
+                        "filler": false
+                    },
+                    {
+                        "name": "segment",
+                        "start": 14,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Código do segmento (Q)",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_15",
+                        "start": 15,
+                        "length": 1,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "movement_code",
+                        "start": 16,
+                        "length": 2,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código de movimento remessa",
+                        "filler": false
+                    },
+                    {
+                        "name": "payer_doc_type",
+                        "start": 18,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Tipo de inscrição do sacado",
+                        "filler": false
+                    },
+                    {
+                        "name": "payer_document",
+                        "start": 19,
+                        "length": 15,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Nº de inscrição do sacado",
+                        "filler": false
+                    },
+                    {
+                        "name": "payer_name",
+                        "start": 34,
+                        "length": 40,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Nome do sacado",
+                        "filler": false
+                    },
+                    {
+                        "name": "payer_address",
+                        "start": 74,
+                        "length": 40,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Endereço",
+                        "filler": false
+                    },
+                    {
+                        "name": "payer_district",
+                        "start": 114,
+                        "length": 15,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Bairro",
+                        "filler": false
+                    },
+                    {
+                        "name": "payer_zip",
+                        "start": 129,
+                        "length": 5,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "CEP",
+                        "filler": false
+                    },
+                    {
+                        "name": "payer_zip_suffix",
+                        "start": 134,
+                        "length": 3,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Sufixo do CEP",
+                        "filler": false
+                    },
+                    {
+                        "name": "payer_city",
+                        "start": 137,
+                        "length": 15,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Cidade",
+                        "filler": false
+                    },
+                    {
+                        "name": "payer_state",
+                        "start": 152,
+                        "length": 2,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "UF",
+                        "filler": false
+                    },
+                    {
+                        "name": "guarantor_doc_type",
+                        "start": 154,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Tipo de inscrição do sacador",
+                        "filler": false
+                    },
+                    {
+                        "name": "guarantor_document",
+                        "start": 155,
+                        "length": 15,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Nº de inscrição do sacador",
+                        "filler": false
+                    },
+                    {
+                        "name": "guarantor_name",
+                        "start": 170,
+                        "length": 40,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Nome do sacador/avalista",
+                        "filler": false
+                    },
+                    {
+                        "name": "correspondent_bank",
+                        "start": 210,
+                        "length": 3,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Banco correspondente",
+                        "filler": false
+                    },
+                    {
+                        "name": "correspondent_our_number",
+                        "start": 213,
+                        "length": 20,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Nosso número no banco correspondente",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_233",
+                        "start": 233,
+                        "length": 8,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    }
+                ]
+            },
+            "5": {
+                "code": "5",
+                "name": "Trailer de lote",
+                "role": "detail",
+                "fields": [
+                    {
+                        "name": "bank_code",
+                        "start": 1,
+                        "length": 3,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código do banco",
+                        "filler": false
+                    },
+                    {
+                        "name": "lot",
+                        "start": 4,
+                        "length": 4,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Lote de serviço",
+                        "filler": false
+                    },
+                    {
+                        "name": "record_type",
+                        "start": 8,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Tipo de registro (5)",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_9",
+                        "start": 9,
+                        "length": 9,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "lot_record_count",
+                        "start": 18,
+                        "length": 6,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Quantidade de registros do lote",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_24",
+                        "start": 24,
+                        "length": 217,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    }
+                ]
+            },
+            "9": {
+                "code": "9",
+                "name": "Trailer de arquivo",
+                "role": "trailer",
+                "fields": [
+                    {
+                        "name": "bank_code",
+                        "start": 1,
+                        "length": 3,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Código do banco",
+                        "filler": false
+                    },
+                    {
+                        "name": "lot",
+                        "start": 4,
+                        "length": 4,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Lote de serviço",
+                        "filler": false
+                    },
+                    {
+                        "name": "record_type",
+                        "start": 8,
+                        "length": 1,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Tipo de registro (9)",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_9",
+                        "start": 9,
+                        "length": 9,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    },
+                    {
+                        "name": "lot_count",
+                        "start": 18,
+                        "length": 6,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Quantidade de lotes do arquivo",
+                        "filler": false
+                    },
+                    {
+                        "name": "record_count",
+                        "start": 24,
+                        "length": 6,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Quantidade de registros do arquivo",
+                        "filler": false
+                    },
+                    {
+                        "name": "reconciliation_account_count",
+                        "start": 30,
+                        "length": 6,
+                        "type": "numeric",
+                        "decimals": 0,
+                        "description": "Qtd contas p/ conciliação",
+                        "filler": false
+                    },
+                    {
+                        "name": "filler_36",
+                        "start": 36,
+                        "length": 205,
+                        "type": "alphanumeric",
+                        "decimals": 0,
+                        "description": "Reserved",
+                        "filler": true
+                    }
+                ]
+            }
+        }
+    }
+}

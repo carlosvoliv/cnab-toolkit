@@ -13,6 +13,18 @@ A small full-stack demo with two flows:
 - **Backend:** a thin PHP endpoint (`server/index.php`) that drives the real
   `Writer`/`Parser` from the library. It is not part of the published package.
 
+## Live demo
+
+A static build is published to GitHub Pages:
+**https://carlosvoliv.github.io/cnab-toolkit/**
+
+The deployed build has no PHP backend, so it runs a small **in-browser CNAB
+engine** (a faithful JS port of the library) driven by the same layout schemas
+dumped from PHP (`src/layouts.generated.json` via `npm run schema`) — positions
+stay single-sourced. The header chip shows which engine is live: *API PHP*
+locally, *engine no browser* on Pages. Private layouts (`layouts.local/`) are
+never part of the static bundle.
+
 ## Run it
 
 From this `demo/` folder, in two terminals:
