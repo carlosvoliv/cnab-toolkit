@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import {
   FacetButton,
   FacetIconButton,
@@ -32,7 +32,29 @@ const DOC_TYPES = [
   { value: '1', label: 'CPF' },
 ]
 
-// ── Top-level flow: build a file or read one back ───────────────────────────
+// ── Layouts (from the API: public registry + local maps) ────────────────────
+const layouts = ref([])
+const genLayoutId = ref('')
+const readLayoutId = ref('')
+
+const genOptions = computed(() =>
+  layouts.value.filter((l) => l.canGenerate).map((l) => ({ value: l.id, label: l.label })),
+)
+const readOptions = computed(() => layouts.value.map((l) => ({ value: l.id, label: l.label })))
+
+onMounted(async () => {
+  try {
+    const res = await fetch('/api/layouts')
+    const body = await res.json()
+    layouts.value = body.layouts || []
+    genLayoutId.value = layouts.value.find((l) => l.canGenerate)?.id || ''
+    readLayoutId.value = layouts.value[0]?.id || ''
+  } catch {
+    error.value = 'Não foi possível carregar os layouts.'
+  }
+})
+
+// ── Top-level flow ──────────────────────────────────────────────────────────
 const flow = ref('generate') // generate | read
 function setFlow(value) {
   flow.value = value
@@ -92,6 +114,7 @@ function removeTitle(i) {
 const readMode = ref('file') // file | text
 const readText = ref('')
 const readFile = ref(null)
+const readBytesB64 = ref('')
 
 function pickFile(e) {
   const f = (e.dataTransfer || e.target).files?.[0]
@@ -99,9 +122,13 @@ function pickFile(e) {
   readFile.value = f
   const reader = new FileReader()
   reader.onload = () => {
-    readText.value = String(reader.result || '')
+    // Keep raw bytes (CNAB files are latin-1, byte-positioned) → base64.
+    const bytes = new Uint8Array(reader.result)
+    let bin = ''
+    for (let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i])
+    readBytesB64.value = btoa(bin)
   }
-  reader.readAsText(f)
+  reader.readAsArrayBuffer(f)
 }
 
 // ── Shared result state ─────────────────────────────────────────────────────
@@ -110,8 +137,10 @@ const error = ref('')
 const result = ref(null)
 const view = ref('file') // file | decoded (only when a generated file exists)
 
-const canGenerate = computed(() => titles.value.length > 0)
-const canParse = computed(() => readText.value.trim().length > 0)
+const canGenerate = computed(() => !!genLayoutId.value && titles.value.length > 0)
+const canParse = computed(() =>
+  !readLayoutId.value ? false : readMode.value === 'file' ? !!readBytesB64.value : readText.value.trim().length > 0,
+)
 const hasFile = computed(() => !!result.value?.content)
 
 const steps = computed(() => {
@@ -166,10 +195,14 @@ async function post(url, payload) {
 }
 
 function generate() {
-  if (canGenerate.value) post('/api/generate', { header: header.value, titles: titles.value })
+  if (canGenerate.value) post('/api/generate', { layout: genLayoutId.value, header: header.value, titles: titles.value })
 }
 function parse() {
-  if (canParse.value) post('/api/parse', { content: readText.value })
+  if (!canParse.value) return
+  const payload = { layout: readLayoutId.value }
+  if (readMode.value === 'file') payload.contentBase64 = readBytesB64.value
+  else payload.content = readText.value
+  post('/api/parse', payload)
 }
 
 function downloadFile() {
@@ -237,6 +270,8 @@ async function copyFile() {
 
             <!-- GENERATE -->
             <template v-if="flow === 'generate'">
+              <FacetSelect v-model="genLayoutId" :options="genOptions" label="Layout" />
+
               <div class="grid-2">
                 <FacetInput v-model="header.company_name" label="Cedente / Empresa" />
                 <FacetInput v-model="header.company_code" label="Código do cedente" />
@@ -282,6 +317,8 @@ async function copyFile() {
 
             <!-- READ -->
             <template v-else>
+              <FacetSelect v-model="readLayoutId" :options="readOptions" label="Layout do arquivo" />
+
               <FacetTabs
                 :model-value="readMode"
                 :tabs="[
@@ -306,7 +343,7 @@ async function copyFile() {
                 </template>
                 <template v-else>
                   <strong>Arraste um .REM/.TXT ou clique para enviar</strong>
-                  <span class="dropzone__hint">arquivo de remessa CNAB</span>
+                  <span class="dropzone__hint">arquivo de remessa CNAB (latin-1, 550 colunas)</span>
                 </template>
               </label>
 
@@ -317,12 +354,12 @@ async function copyFile() {
                 aria-label="Conteúdo do arquivo CNAB"
                 spellcheck="false"
                 rows="14"
-                placeholder="Cole aqui as linhas de 550 colunas do arquivo de remessa"
+                placeholder="Cole aqui as linhas do arquivo de remessa"
               />
 
               <FacetAlert variant="info" title="Layout">
-                A leitura usa o layout de exemplo <strong>generic-remittance-550</strong>. Um arquivo de um banco real
-                segue outro mapa de posições — declare o layout dele para decodificar corretamente.
+                Selecione o layout que corresponde ao arquivo. Posições erradas decodificam valores errados — cada
+                banco/câmara tem o seu mapa.
               </FacetAlert>
 
               <div class="actions">
@@ -387,7 +424,7 @@ async function copyFile() {
                 <pre v-if="hasFile && view === 'file'" class="file-out">{{ result.content }}</pre>
 
                 <div v-else class="decoded">
-                  <div v-for="(rec, i) in result.records" :key="i" class="rec-block">
+                  <div v-for="(rec, i) in result.records.slice(0, 60)" :key="i" class="rec-block">
                     <div class="rec-block__head">
                       <FacetChip :variant="roleVariant(rec.role)" size="sm">{{ roleLabel(rec.role) }}</FacetChip>
                       <span class="rec-name">{{ rec.name }}</span>
@@ -402,6 +439,9 @@ async function copyFile() {
                       </template>
                     </FacetTable>
                   </div>
+                  <p v-if="result.records.length > 60" class="more-note">
+                    Mostrando 60 de {{ result.records.length }} registros.
+                  </p>
                 </div>
               </div>
             </section>

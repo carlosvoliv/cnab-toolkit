@@ -10,15 +10,19 @@ declare(strict_types=1);
  *
  *   php -S 127.0.0.1:8000 -t demo/server
  *
- * The star of the demo is /api/generate: structured input -> a valid CNAB
- * remittance file (which is what a securitization back office actually does).
+ * Layouts come from two places:
+ *   - the public, didactic ones registered below;
+ *   - any private map dropped in ./layouts.local/*.php (gitignored), e.g. an
+ *     institution-specific CNAB550 used to read real files locally.
  */
 
 use Cnab\CnabFile;
 use Cnab\Exceptions\CnabException;
+use Cnab\LayoutRegistry;
 use Cnab\Layouts\GenericRemittance550;
 use Cnab\Parser;
 use Cnab\Record;
+use Cnab\Schema\Layout;
 use Cnab\Schema\RecordDefinition;
 use Cnab\Support\Decimal;
 use Cnab\Writer;
@@ -27,14 +31,34 @@ require __DIR__.'/../../vendor/autoload.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
+/** @var array<string, callable(Layout, array, array): CnabFile> $builders */
+$builders = [];
+$registry = new LayoutRegistry;
+
+// Public, didactic layout (ships with the repo).
+$registry->register('generic-remittance-550', GenericRemittance550::layout(), 'Genérico (exemplo) · 550');
+$builders['generic-remittance-550'] = buildGenericRemittance(...);
+
+// Private, local layouts (gitignored) — real maps to read actual files.
+foreach (glob(__DIR__.'/layouts.local/*.php') ?: [] as $localFile) {
+    $desc = require $localFile;
+    if (! is_array($desc) || ! ($desc['layout'] ?? null) instanceof Layout) {
+        continue;
+    }
+    $registry->register($desc['id'], $desc['layout'], $desc['label'] ?? $desc['id']);
+    if (! empty($desc['builder']) && is_callable($desc['builder'])) {
+        $builders[$desc['id']] = $desc['builder'];
+    }
+}
+
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-$layout = GenericRemittance550::layout();
 
 try {
     match (true) {
-        $method === 'POST' && $path === '/api/generate' => json(generate($layout, jsonBody())),
-        $method === 'POST' && $path === '/api/parse' => json(parseContent($layout, (string) (jsonBody()['content'] ?? ''))),
+        $method === 'GET' && $path === '/api/layouts' => json(layoutCatalog($registry, $builders)),
+        $method === 'POST' && $path === '/api/generate' => json(handleGenerate($registry, $builders, jsonBody())),
+        $method === 'POST' && $path === '/api/parse' => json(handleParse($registry, jsonBody())),
         default => fail(404, 'Not found.'),
     };
 } catch (CnabException $e) {
@@ -44,13 +68,35 @@ try {
 }
 
 /**
- * Build a remittance file from structured input, then parse it back so the UI
- * can show both the raw fixed-width output and the decoded records as proof.
- *
+ * @param  array<string, callable>  $builders
+ * @return array{layouts:list<array<string,mixed>>}
+ */
+function layoutCatalog(LayoutRegistry $registry, array $builders): array
+{
+    $layouts = array_map(
+        static fn (array $meta): array => [...$meta, 'canGenerate' => isset($builders[$meta['id']])],
+        $registry->describe(),
+    );
+
+    return ['layouts' => $layouts];
+}
+
+/**
+ * @param  array<string, callable>  $builders
  * @param  array<string, mixed>  $input
  */
-function generate($layout, array $input): array
+function handleGenerate(LayoutRegistry $registry, array $builders, array $input): array
 {
+    $id = (string) ($input['layout'] ?? '');
+
+    if (! $registry->has($id)) {
+        throw new CnabException('Layout desconhecido.');
+    }
+    if (! isset($builders[$id])) {
+        throw new CnabException('Geração não disponível para este layout — use a leitura.');
+    }
+
+    $layout = $registry->get($id);
     $header = is_array($input['header'] ?? null) ? $input['header'] : [];
     $titles = is_array($input['titles'] ?? null) ? array_values($input['titles']) : [];
 
@@ -58,6 +104,47 @@ function generate($layout, array $input): array
         throw new CnabException('Adicione ao menos um título à remessa.');
     }
 
+    $file = $builders[$id]($layout, $header, $titles);
+    $content = (new Writer)->write($file);
+
+    // Round-trip so the preview reflects exactly what was encoded.
+    return payload($layout, (new Parser)->parse($content, $layout), $content);
+}
+
+/** @param array<string, mixed> $input */
+function handleParse(LayoutRegistry $registry, array $input): array
+{
+    $id = (string) ($input['layout'] ?? '');
+
+    if (! $registry->has($id)) {
+        throw new CnabException('Layout desconhecido.');
+    }
+
+    // Real CNAB files are latin-1 and byte-positioned; uploads arrive base64 so
+    // raw bytes survive (accented chars stay single-byte and line width holds).
+    if (isset($input['contentBase64'])) {
+        $content = base64_decode((string) $input['contentBase64'], true);
+        if ($content === false) {
+            throw new CnabException('Conteúdo base64 inválido.');
+        }
+    } else {
+        $content = (string) ($input['content'] ?? '');
+    }
+
+    $content = rtrim($content);
+
+    if (trim($content) === '') {
+        throw new CnabException('Cole o conteúdo de um arquivo CNAB ou envie um .REM.');
+    }
+
+    $layout = $registry->get($id);
+
+    return payload($layout, (new Parser)->parse($content, $layout), null);
+}
+
+/** The generic builder used by the public example layout. */
+function buildGenericRemittance(Layout $layout, array $header, array $titles): CnabFile
+{
     $file = new CnabFile($layout);
     $seq = 1;
 
@@ -96,62 +183,37 @@ function generate($layout, array $input): array
         ->set('record_type', 9)
         ->set('record_sequence', $seq));
 
-    $content = (new Writer)->write($file);
-
-    // Round-trip to prove the output is well-formed and to drive the preview.
-    $parsed = (new Parser)->parse($content, $layout);
-
-    $cents = 0;
-    foreach ($parsed->details() as $detail) {
-        $cents += (int) Decimal::toScaledInt($detail->get('amount'), 2);
-    }
-
-    return [
-        'layout' => $layout->name,
-        'lineLength' => $layout->lineLength,
-        'content' => $content,
-        'byteLength' => strlen($content),
-        'lineCount' => $parsed->count(),
-        'records' => array_map(serializeRecord(...), $parsed->records()),
-        'summary' => [
-            'records' => $parsed->count(),
-            'details' => count($parsed->details()),
-            'totalAmount' => Decimal::fromScaledInt((string) $cents, 2),
-        ],
-    ];
+    return $file;
 }
 
-/**
- * Parse raw CNAB content into the same decoded shape the generator returns, so
- * the UI can reuse the decoded view for uploaded/pasted files.
- */
-function parseContent($layout, string $content): array
+/** Build the decoded payload (records + summary), optionally with raw content. */
+function payload(Layout $layout, CnabFile $file, ?string $content): array
 {
-    $content = rtrim($content);
-
-    if (trim($content) === '') {
-        throw new CnabException('Cole o conteúdo de um arquivo CNAB ou envie um .REM.');
-    }
-
-    $parsed = (new Parser)->parse($content, $layout);
-
     $cents = 0;
-    foreach ($parsed->details() as $detail) {
-        if ($detail->has('amount')) {
-            $cents += (int) Decimal::toScaledInt($detail->get('amount'), 2);
+    foreach ($file->details() as $detail) {
+        $amount = $detail->has('amount') ? $detail->get('amount') : ($detail->tryGet('title_amount') ?? '');
+        if ($amount !== '') {
+            $cents += (int) Decimal::toScaledInt($amount, 2);
         }
     }
 
-    return [
+    $out = [
         'layout' => $layout->name,
         'lineLength' => $layout->lineLength,
-        'records' => array_map(serializeRecord(...), $parsed->records()),
+        'records' => array_map(serializeRecord(...), $file->records()),
         'summary' => [
-            'records' => $parsed->count(),
-            'details' => count($parsed->details()),
+            'records' => $file->count(),
+            'details' => count($file->details()),
             'totalAmount' => Decimal::fromScaledInt((string) $cents, 2),
         ],
     ];
+
+    if ($content !== null) {
+        $out['content'] = $content;
+        $out['byteLength'] = strlen($content);
+    }
+
+    return $out;
 }
 
 /** @return array{code:string,name:string,role:string,fields:list<array<string,mixed>>} */
@@ -168,7 +230,7 @@ function serializeRecord(Record $record): array
         $fields[] = [
             'name' => $name,
             'label' => $field->description !== '' ? $field->description : $name,
-            'value' => $record->tryGet($name, ''),
+            'value' => toUtf8($record->tryGet($name, '')),
             'type' => $field->type->value,
             'span' => sprintf('%d–%d', $field->start, $field->end()),
         ];
@@ -199,8 +261,7 @@ function digits(mixed $value): string
 function upper(mixed $value): string
 {
     // CNAB alphanumeric: uppercase, ASCII, no accents.
-    $text = (string) $value;
-    $text = (string) preg_replace('/[^\x20-\x7E]/', '', toAscii($text));
+    $text = (string) preg_replace('/[^\x20-\x7E]/', '', toAscii((string) $value));
 
     return strtoupper($text);
 }
@@ -210,6 +271,16 @@ function toAscii(string $text): string
     $converted = @iconv('UTF-8', 'ASCII//TRANSLIT', $text);
 
     return $converted === false ? $text : $converted;
+}
+
+/** Ensure a field value is valid UTF-8 for JSON (latin-1 files decode to it). */
+function toUtf8(string $text): string
+{
+    if ($text === '' || mb_check_encoding($text, 'UTF-8')) {
+        return $text;
+    }
+
+    return mb_convert_encoding($text, 'UTF-8', 'ISO-8859-1');
 }
 
 function sanitizeAmount(mixed $value): string

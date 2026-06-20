@@ -31,10 +31,22 @@ npm run dev
 
 Open the URL Vite prints (e.g. http://localhost:5173).
 
-## Note on parsing real files
+## Layouts
 
-The demo ships the generic `GenericRemittance550` layout, whose field positions
-are illustrative — they are **not** any institution's real map. Parsing a real
-file therefore requires declaring that file's actual layout (which is exactly
-the point of the schema-driven design); pasting a foreign file into the generic
-layout will misread fields. Generation, by contrast, is fully self-consistent.
+The layout dropdown is fed by `GET /api/layouts`, which merges two sources:
+
+- **Public layouts** registered in `server/index.php` (e.g. the didactic
+  `generic-remittance-550`).
+- **Private layouts** dropped in `server/layouts.local/*.php` — a **gitignored**
+  folder for institution-specific maps you can't publish. Each file returns
+  `['id' => ..., 'label' => ..., 'layout' => Layout, 'builder' => callable|null]`
+  (a `null` builder means parse-only).
+
+This is how you read a real bank/clearing-house file: add its real layout under
+`layouts.local/` and pick it in the dropdown. Picking the wrong layout decodes
+the wrong bytes — each institution has its own field map, which is the whole
+point of the schema-driven design.
+
+Real `.REM` files are usually **latin-1** and byte-positioned, so uploads are
+sent as base64 (raw bytes preserved) and decoded values are converted to UTF-8
+for display.

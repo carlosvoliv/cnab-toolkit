@@ -9,3 +9,6 @@ composer.lock
 demo/node_modules/
 demo/dist/
 demo/package-lock.json
+
+# private, institution-specific layouts (never publish proprietary maps)
+demo/server/layouts.local/
